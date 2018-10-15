@@ -1,2 +1,2 @@
 # gameaiflockstaclecourse
-Can the flock get past all the flockstacles? It's a mysteryyyyyyyyyyyyyy... :(
+Can the flock get past all the flockstacles? It's NO mysteryyyyyyyyyyyyyy... :(
