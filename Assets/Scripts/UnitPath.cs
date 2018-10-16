@@ -4,27 +4,28 @@ using UnityEngine;
 
 public class UnitPath : MonoBehaviour
 {
+	public float formationWidth = 1;		//represents width of formation in current state, unit width inclusive
 	public GameObject pathGoal;
 	private ArrayList pathGoals;
 	private int pathIndex;
 	public GameObject head;
 	public float moveSpeed = 1;
-	private Vector3 movement;
 	private float t = 0;
-	public GameObject radius;
 	public GameObject lineA;
 	public GameObject lineB;
 	public GameObject lineC;
 	public GameObject lineD;
+	public GameObject lineE;
+	public GameObject lineF;
 	public Material greenMat;
 	public Material redMat;
 	public string unitName;
 	public UIHandler uiReceive;
 	public Vector3 velocity;
 	public float acceleration;
-	public float rayDistance = 1f;
-	public float goalRotatePower = .05f;
-	public float avoidRotatePower = .5f;
+	public float goalDistance = 1f;
+	public float goalRotatePower = 7f;
+	public float avoidRotatePower = 32f;
 
 	void Start()
 	{
@@ -55,9 +56,7 @@ public class UnitPath : MonoBehaviour
 
 		//movement
 
-		velocity += transform.forward * acceleration * Time.deltaTime;
-		velocity = Vector3.ClampMagnitude(velocity, moveSpeed);
-		transform.position += velocity * Time.deltaTime;
+		moveLogic();
 
 		//y axis
 
@@ -65,7 +64,7 @@ public class UnitPath : MonoBehaviour
 
 		//pathing logic
 
-		if (pathGoals.Count > pathIndex && Vector3.Distance(((GameObject)pathGoals[pathIndex]).transform.position, transform.position) < rayDistance)
+		if (pathGoals.Count > pathIndex && Vector3.Distance(((GameObject)pathGoals[pathIndex]).transform.position, transform.position) < goalDistance)
 			pathIndex++;
 	}
 
@@ -75,7 +74,7 @@ public class UnitPath : MonoBehaviour
 			return;
 
 		Quaternion goalRotation = Quaternion.LookRotation(((GameObject)pathGoals[pathIndex]).transform.position - transform.position);
-		float rr = rayResult();
+		float rr = rayResultFront();
 		Quaternion avoidRotation = transform.rotation * Quaternion.AngleAxis(rr * 4, Vector3.up);
 
 		transform.rotation = Quaternion.Slerp(transform.rotation, goalRotation, goalRotatePower * Time.deltaTime);
@@ -86,29 +85,29 @@ public class UnitPath : MonoBehaviour
 		}
 	}
 
-	float rayResult()	//returns negative for turn power left, positive for turn power right, zero for no change of course
+	float rayResultFront()   //returns negative for turn power left, positive for turn power right, zero for no change of course
 	{
 		LayerMask selfMask = 1 << 0;
 
 		Ray rayA = new Ray(transform.position - transform.right * .25f, transform.forward);
 		RaycastHit hitA = new RaycastHit();
-		bool a = Physics.Raycast(rayA, out hitA, rayDistance, selfMask);
-		rayDisplay(lineA, rayA.origin, rayA.origin + rayA.direction * rayDistance, a);
+		bool a = Physics.Raycast(rayA, out hitA, goalDistance, selfMask);
+		rayDisplay(lineA, rayA.origin, rayA.origin + rayA.direction * goalDistance, a);
 
 		Ray rayB = new Ray(transform.position + transform.right * .25f, transform.forward);
 		RaycastHit hitB = new RaycastHit();
-		bool b = Physics.Raycast(rayB, out hitB, rayDistance, selfMask);
-		rayDisplay(lineB, rayB.origin, rayB.origin + rayB.direction * rayDistance, b);
+		bool b = Physics.Raycast(rayB, out hitB, goalDistance, selfMask);
+		rayDisplay(lineB, rayB.origin, rayB.origin + rayB.direction * goalDistance, b);
 
 		Ray rayC = new Ray(transform.position, (transform.forward - transform.right * .15f));
 		RaycastHit hitC = new RaycastHit();
-		bool c = Physics.Raycast(rayC, out hitC, rayDistance, selfMask);
-		rayDisplay(lineC, rayC.origin, rayC.origin + rayC.direction * rayDistance, c);
+		bool c = Physics.Raycast(rayC, out hitC, goalDistance, selfMask);
+		rayDisplay(lineC, rayC.origin, rayC.origin + rayC.direction * goalDistance, c);
 
 		Ray rayD = new Ray(transform.position, (transform.forward + transform.right * .15f));
 		RaycastHit hitD = new RaycastHit();
-		bool d = Physics.Raycast(rayD, out hitD, rayDistance, selfMask);
-		rayDisplay(lineD, rayD.origin, rayD.origin + rayD.direction * rayDistance, d);
+		bool d = Physics.Raycast(rayD, out hitD, goalDistance, selfMask);
+		rayDisplay(lineD, rayD.origin, rayD.origin + rayD.direction * goalDistance, d);
 
 		//decision logic
 
@@ -128,28 +127,95 @@ public class UnitPath : MonoBehaviour
 		if (c && d)
 		{
 			if (distanceC < distanceD)
-				return Mathf.Clamp(rayDistance / distanceC, 0, 5);
+				return Mathf.Clamp(goalDistance / distanceC, 0, 5);
 			else
-				return Mathf.Clamp(rayDistance / -distanceD, -5, 0);
+				return Mathf.Clamp(goalDistance / -distanceD, -5, 0);
 		}
-		if(c)
-			return Mathf.Clamp(rayDistance / distanceC, 0, 5);
+		if (c)
+			return Mathf.Clamp(goalDistance / distanceC, 0, 5);
 		if (d)
-			return Mathf.Clamp(rayDistance / -distanceD, -5, 0);
+			return Mathf.Clamp(goalDistance / -distanceD, -5, 0);
 
 		if (a && b)
 		{
 			if (distanceA < distanceB)
-				return Mathf.Clamp(rayDistance / distanceA, 0, 5);
+				return Mathf.Clamp(goalDistance / distanceA, 0, 5);
 			else
-				return Mathf.Clamp(rayDistance / -distanceB, -5, 0);
+				return Mathf.Clamp(goalDistance / -distanceB, -5, 0);
 		}
 		if (a)
-			return Mathf.Clamp(rayDistance / distanceA, 0, 5);
+			return Mathf.Clamp(goalDistance / distanceA, 0, 5);
 		if (b)
-			return Mathf.Clamp(rayDistance / -distanceB, -5, 0);
+			return Mathf.Clamp(goalDistance / -distanceB, -5, 0);
 
 		return 0;
+	}
+
+	void moveLogic()
+	{
+		Vector3 resultLeft = rayResultLeft();
+		Vector3 resultRight = rayResultRight();
+		bool l = resultLeft != transform.position;
+		bool r = resultRight != transform.position;
+
+		if (!l && !r)
+		{
+			standardMove();
+		}
+
+		if (l && r)
+		{
+			float goalWidth = Vector3.Distance(resultLeft, resultRight);
+
+			if (formationWidth < goalWidth)
+			{
+
+			}
+		}
+		
+
+	}
+
+	void standardMove()
+	{
+		velocity += transform.forward * acceleration * Time.deltaTime;
+		velocity = Vector3.ClampMagnitude(velocity, moveSpeed);
+		transform.position += velocity * Time.deltaTime;
+	}
+
+	bool groupStatus()
+	{
+		return true;	//only if group isn't lagging
+	}
+
+	Vector3 rayResultLeft()
+	{
+		LayerMask selfMask = 1 << 0;
+
+		Ray rayE = new Ray(transform.position, -transform.right);
+		RaycastHit hitE = new RaycastHit();
+		bool e = Physics.Raycast(rayE, out hitE, (formationWidth / 2 + .1f), selfMask);
+		rayDisplay(lineE, rayE.origin, rayE.origin + rayE.direction * (formationWidth / 2 + .1f), e);
+
+		if (e)
+			return hitE.point;
+
+		return transform.position;
+	}
+
+	Vector3 rayResultRight()
+	{
+		LayerMask selfMask = 1 << 0;
+
+		Ray rayF = new Ray(transform.position, transform.right);
+		RaycastHit hitF = new RaycastHit();
+		bool f = Physics.Raycast(rayF, out hitF, (formationWidth / 2 + .1f), selfMask);
+		rayDisplay(lineF, rayF.origin, rayF.origin + rayF.direction * (formationWidth / 2 + .1f), f);
+
+		if (f)
+			return hitF.point;
+
+		return transform.position;
 	}
 
 	void rayDisplay(GameObject line, Vector3 origin, Vector3 end, bool didHit)
@@ -161,11 +227,5 @@ public class UnitPath : MonoBehaviour
 			line.GetComponent<MeshRenderer>().material = greenMat;
 		else
 			line.GetComponent<MeshRenderer>().material = redMat;
-	}
-
-	void radiusDisplay(float rad, Vector3 pos)
-	{
-		radius.transform.position = pos;
-		radius.transform.localScale = new Vector3(rad, .05f, rad);
 	}
 }

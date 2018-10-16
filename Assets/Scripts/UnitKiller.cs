@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class UnitLeader : MonoBehaviour
+public class UnitKiller : MonoBehaviour
 {
 	public GameObject head;
 	public float moveSpeed = 1;
@@ -12,7 +12,6 @@ public class UnitLeader : MonoBehaviour
 	public Camera cam;
     public Vector3 velocity;
 	public GameObject goal;
-	//public Vector3 velocity;
 	public float acceleration;
 
 	void Start()
@@ -20,7 +19,7 @@ public class UnitLeader : MonoBehaviour
 
 	}
 
-	void Update()
+	void FixedUpdate()
 	{
 		LayerMask mask = 1 << 9;
 		RaycastHit hit = new RaycastHit();
