@@ -12,7 +12,6 @@ public class UnitFormationLeader : MonoBehaviour
 	private int pathIndex;
 	public GameObject head;
 	public float moveSpeed = 1;
-	private float t = 0;
 	public GameObject lineA;
 	public GameObject lineB;
 	public GameObject lineC;
@@ -28,11 +27,14 @@ public class UnitFormationLeader : MonoBehaviour
 	public float goalDistance = 1f;
 	public float goalRotatePower = 7f;
 	public float avoidRotatePower = 32f;
-	private List<GameObject> group = null;
+	private List<GameObject> group = null;		//if null, will not worry about group
+	
+	public bool widthCheck = true;
 
 	void Start()
 	{
 		Physics.IgnoreLayerCollision(9, 0);
+
 		Transform[] pathTemp = pathGoal.GetComponentsInChildren<Transform>();
 		pathGoals = new ArrayList();
 		for (int i = 0; i < pathTemp.Length; i++)
@@ -164,7 +166,7 @@ public class UnitFormationLeader : MonoBehaviour
 		bool l = resultLeft != transform.position;
 		bool r = resultRight != transform.position;
 
-		if (!l && !r)
+		if ((!l && !r) || !widthCheck)
 		{
 			velocity += transform.forward * acceleration * Time.deltaTime;
 		}
