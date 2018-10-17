@@ -21,8 +21,9 @@ public class UnitEmergent : MonoBehaviour
 	public float raycastDistance = 1f;
 	public float goalRotatePower = 7f;
 	public float avoidRotatePower = 32f;
+	public float visionDegrees = 90f;
 	public GameObject groupParent;
-	private UnitEmergent[] group = null;
+	private List<Transform> group = null;
 	private GameObject goal = null;
 
 	public bool active = true;
@@ -31,7 +32,11 @@ public class UnitEmergent : MonoBehaviour
 	{
 		Physics.IgnoreLayerCollision(9, 0);
 
-		group = groupParent.GetComponentsInChildren<UnitEmergent>();
+		Transform[] temp = groupParent.GetComponentsInChildren<Transform>();
+		for (int i = 0; i < temp.Length; i++)
+		{
+			//if (
+		}
 	}
 
 	void Update()
@@ -49,10 +54,12 @@ public class UnitEmergent : MonoBehaviour
 
 		//set goal
 
-		for (int i = 0; i < group.Length; i++)
-		{
+		List<Transform> followable = new List<Transform>();
 
-		}
+		/*for (int i = 0; i < group.Length; i++)
+		{
+			if (inVision(group[i])
+		}*/
 
 		//rotation
 
@@ -68,9 +75,9 @@ public class UnitEmergent : MonoBehaviour
 		transform.position = new Vector3(transform.position.x, 0 + .35f, transform.position.z);
 	}
 
-	bool inVision(GameObject unit)
+	bool inVision(Transform unit)
 	{
-		if (Vector3.Angle((unit.transform.position - transform.position).normalized, transform.forward) < visionDegrees)
+		if (Vector3.Angle((unit.position - transform.position).normalized, transform.forward) < visionDegrees)
 			return true;
 		return false;
 	}
