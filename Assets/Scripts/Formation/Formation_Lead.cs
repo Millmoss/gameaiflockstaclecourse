@@ -59,4 +59,30 @@ public class Formation_Lead : MonoBehaviour {
 
        
 	}
+
+	public float getFormationWidth()
+	{
+		return line_size;
+	}
+
+	public List<GameObject> getBoids()
+	{
+		return boids;
+	}
+
+	public bool getLeft(float dist)
+	{
+		if (true)//can move left by dist
+			return true;
+
+		return false;
+	}
+
+	public bool getRight(float dist)
+	{
+		if (true)//can move right by dist
+			return true;
+
+		return false;
+	}
 }

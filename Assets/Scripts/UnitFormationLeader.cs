@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class UnitPath : MonoBehaviour
+public class UnitFormationLeader : MonoBehaviour
 {
+	public Formation_Lead groupScript;
 	public float formationWidth = 1;        //represents width of formation in current state, unit width inclusive
 	public float goalWidth = 0;
 	public GameObject pathGoal;
@@ -27,7 +28,7 @@ public class UnitPath : MonoBehaviour
 	public float goalDistance = 1f;
 	public float goalRotatePower = 7f;
 	public float avoidRotatePower = 32f;
-	public GameObject[] group = null;
+	private List<GameObject> group = null;
 
 	void Start()
 	{
@@ -42,6 +43,8 @@ public class UnitPath : MonoBehaviour
 			}
 		}
 		pathIndex = 0;
+
+		group = groupScript.getBoids();
 	}
 
 	void Update()
@@ -59,6 +62,7 @@ public class UnitPath : MonoBehaviour
 		//movement
 
 		moveLogic();
+		standardMove();
 
 		//y axis
 
@@ -165,7 +169,7 @@ public class UnitPath : MonoBehaviour
 			velocity += transform.forward * acceleration * Time.deltaTime;
 		}
 
-			if (l && r)
+		if (l && r)
 		{
 			goalWidth = Vector3.Distance(resultLeft, resultRight);
 			print(goalWidth);
@@ -182,7 +186,7 @@ public class UnitPath : MonoBehaviour
 
 		if (l && !r)
 		{
-			if (true)//can move right?
+			if (groupScript.getRight(Vector3.Distance(resultLeft, transform.position)))//can move right?
 			{
 				velocity += transform.right * Vector3.Distance(resultLeft, transform.position) * Time.deltaTime * 100;
 			}
@@ -195,7 +199,7 @@ public class UnitPath : MonoBehaviour
 
 		if (!l && r)
 		{
-			if (true)//can move left?
+			if (groupScript.getLeft(Vector3.Distance(resultRight, transform.position)))//can move left?
 			{
 				velocity += -transform.right * Vector3.Distance(resultRight, transform.position) * Time.deltaTime * 100;
 			}
@@ -205,8 +209,6 @@ public class UnitPath : MonoBehaviour
 				velocity = Vector3.Lerp(velocity, Vector3.zero, .7f);
 			}
 		}
-
-		standardMove();
 	}
 
 	void standardMove()
@@ -224,11 +226,11 @@ public class UnitPath : MonoBehaviour
 
 	bool groupStatus()
 	{
-		if (group == null || group.Length < 1)
+		if (group == null)
 			return true;
 		bool status = true;
-		float maxDist = group.Length / 6 + 1;
-		for (int i = 0; i < group.Length; i++)
+		float maxDist = group.Count / 6 + 1;
+		for (int i = 0; i < group.Count; i++)
 		{
 			if (Vector3.Distance(group[i].transform.position, transform.position) > maxDist)
 				status = false;
