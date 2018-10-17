@@ -108,7 +108,7 @@ public class Flock : MonoBehaviour
         Quaternion end_rotation = Quaternion.LookRotation((seperation_velocity + cohesion_velocity + (flock_velocity + flock_center - transform.position)).normalized, 
             transform.up);
 
-        transform.position = transform.position + transform.rotation.normalized * velocity * Time.deltaTime;
+       // transform.position = transform.position + transform.rotation.normalized * velocity * Time.deltaTime;
 
         transform.rotation = Quaternion.Slerp(transform.rotation, end_rotation, 5 * Time.deltaTime);
         //Move
