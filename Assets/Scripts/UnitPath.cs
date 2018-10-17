@@ -4,7 +4,8 @@ using UnityEngine;
 
 public class UnitPath : MonoBehaviour
 {
-	public float formationWidth = 1;		//represents width of formation in current state, unit width inclusive
+	public float formationWidth = 1;        //represents width of formation in current state, unit width inclusive
+	public float goalWidth = 0;
 	public GameObject pathGoal;
 	private ArrayList pathGoals;
 	private int pathIndex;
@@ -26,6 +27,7 @@ public class UnitPath : MonoBehaviour
 	public float goalDistance = 1f;
 	public float goalRotatePower = 7f;
 	public float avoidRotatePower = 32f;
+	public GameObject[] group = null;
 
 	void Start()
 	{
@@ -160,32 +162,78 @@ public class UnitPath : MonoBehaviour
 
 		if (!l && !r)
 		{
-			standardMove();
+			velocity += transform.forward * acceleration * Time.deltaTime;
 		}
 
-		if (l && r)
+			if (l && r)
 		{
-			float goalWidth = Vector3.Distance(resultLeft, resultRight);
+			goalWidth = Vector3.Distance(resultLeft, resultRight);
+			print(goalWidth);
 
-			if (formationWidth < goalWidth)
+			if (formationWidth > goalWidth)
 			{
-
+				velocity = Vector3.Lerp(velocity, Vector3.zero, .7f);
+			}
+			else
+			{
+				velocity += transform.forward * acceleration * Time.deltaTime;
 			}
 		}
-		
 
+		if (l && !r)
+		{
+			if (true)//can move right?
+			{
+				velocity += transform.right * Vector3.Distance(resultLeft, transform.position) * Time.deltaTime * 100;
+			}
+			else
+			{
+				goalWidth = Vector3.Distance(resultLeft, transform.position) + formationWidth / 2;
+				velocity = Vector3.Lerp(velocity, Vector3.zero, .7f);
+			}
+		}
+
+		if (!l && r)
+		{
+			if (true)//can move left?
+			{
+				velocity += -transform.right * Vector3.Distance(resultRight, transform.position) * Time.deltaTime * 100;
+			}
+			else
+			{
+				goalWidth = Vector3.Distance(resultLeft, transform.position) + formationWidth / 2;
+				velocity = Vector3.Lerp(velocity, Vector3.zero, .7f);
+			}
+		}
+
+		standardMove();
 	}
 
 	void standardMove()
 	{
-		velocity += transform.forward * acceleration * Time.deltaTime;
-		velocity = Vector3.ClampMagnitude(velocity, moveSpeed);
-		transform.position += velocity * Time.deltaTime;
+		if (groupStatus())
+		{
+			velocity = Vector3.ClampMagnitude(velocity, moveSpeed);
+			transform.position += velocity * Time.deltaTime;
+		}
+		else
+		{
+			velocity = Vector3.Lerp(velocity, Vector3.zero, .7f);
+		}
 	}
 
 	bool groupStatus()
 	{
-		return true;	//only if group isn't lagging
+		if (group == null || group.Length < 1)
+			return true;
+		bool status = true;
+		float maxDist = group.Length / 6 + 1;
+		for (int i = 0; i < group.Length; i++)
+		{
+			if (Vector3.Distance(group[i].transform.position, transform.position) > maxDist)
+				status = false;
+		}
+		return status;
 	}
 
 	Vector3 rayResultLeft()
