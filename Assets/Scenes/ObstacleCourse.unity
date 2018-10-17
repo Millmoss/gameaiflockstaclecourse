@@ -573,7 +573,7 @@ GameObject:
   - component: {fileID: 209271151}
   m_Layer: 2
   m_Name: Unit Body
-  m_TagString: Untagged
+  m_TagString: A
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -621,7 +621,9 @@ MonoBehaviour:
   raycastDistance: 1
   goalRotatePower: 7
   avoidRotatePower: 32
+  visionDegrees: 90
   groupParent: {fileID: 902343325}
+  goal: {fileID: 0}
   active: 0
 --- !u!54 &209271152
 Rigidbody:
@@ -854,7 +856,7 @@ GameObject:
   - component: {fileID: 334010613}
   m_Layer: 2
   m_Name: Unit Body
-  m_TagString: Untagged
+  m_TagString: A
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -902,7 +904,9 @@ MonoBehaviour:
   raycastDistance: 1
   goalRotatePower: 7
   avoidRotatePower: 32
+  visionDegrees: 120
   groupParent: {fileID: 902343325}
+  goal: {fileID: 0}
   active: 1
 --- !u!54 &334010614
 Rigidbody:

@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class UnitFormationLeader : MonoBehaviour
 {
-	public Formation_Lead groupScript;
+	public Formation_Lead groupScript = null;
 	public float formationWidth = 1;        //represents width of formation in current state, unit width inclusive
 	public float goalWidth = 0;
 	public GameObject pathGoal;
@@ -46,7 +46,8 @@ public class UnitFormationLeader : MonoBehaviour
 		}
 		pathIndex = 0;
 
-		group = groupScript.getBoids();
+		if (groupScript != null)
+			group = groupScript.getBoids();
 	}
 
 	void Update()
@@ -166,7 +167,13 @@ public class UnitFormationLeader : MonoBehaviour
 		bool l = resultLeft != transform.position;
 		bool r = resultRight != transform.position;
 
-		if ((!l && !r) || !widthCheck)
+		if (!widthCheck)
+		{
+			velocity += transform.forward * acceleration * Time.deltaTime;
+			return;
+		}
+
+		if (!l && !r)
 		{
 			velocity += transform.forward * acceleration * Time.deltaTime;
 		}

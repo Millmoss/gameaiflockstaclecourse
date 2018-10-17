@@ -21,10 +21,10 @@ public class UnitEmergent : MonoBehaviour
 	public float raycastDistance = 1f;
 	public float goalRotatePower = 7f;
 	public float avoidRotatePower = 32f;
-	public float visionDegrees = 90f;
+	public float visionDegrees = 75f;
 	public GameObject groupParent;
 	private List<Transform> group = null;
-	private GameObject goal = null;
+	public Transform goal = null;
 
 	public bool active = true;
 
@@ -32,10 +32,11 @@ public class UnitEmergent : MonoBehaviour
 	{
 		Physics.IgnoreLayerCollision(9, 0);
 
-		Transform[] temp = groupParent.GetComponentsInChildren<Transform>();
+		group = new List<Transform>();
+		UnitEmergent[] temp = groupParent.GetComponentsInChildren<UnitEmergent>();
 		for (int i = 0; i < temp.Length; i++)
 		{
-			//if (
+			group.Add(temp[i].gameObject.transform);
 		}
 	}
 
@@ -54,12 +55,7 @@ public class UnitEmergent : MonoBehaviour
 
 		//set goal
 
-		List<Transform> followable = new List<Transform>();
-
-		/*for (int i = 0; i < group.Length; i++)
-		{
-			if (inVision(group[i])
-		}*/
+		setGoal();
 
 		//rotation
 
@@ -75,6 +71,42 @@ public class UnitEmergent : MonoBehaviour
 		transform.position = new Vector3(transform.position.x, 0 + .35f, transform.position.z);
 	}
 
+	void setGoal()
+	{
+		List<Transform> followable = new List<Transform>();
+
+		for (int i = 0; i < group.Count; i++)
+		{
+			if (inVision(group[i]))
+			{
+				followable.Add(group[i]);
+			}
+		}
+
+		if (followable.Count < 1)
+			followable.Add(group[0]);
+
+		float nearest = Vector3.Distance(transform.position, followable[0].position);
+		int nearIndex = 0;
+		int oldNearIndex = 0;
+		int oldestNearIndex = 0;
+
+		for (int i = 0; i < followable.Count; i++)
+		{
+			float dist = Vector3.Distance(transform.position, followable[i].position);
+
+			if ((dist != 0 && dist < nearest && followable[i].GetComponent<UnitEmergent>().goal != transform) || nearest == 0)
+			{
+				nearest = dist;
+				oldestNearIndex = oldNearIndex;
+				oldNearIndex = nearIndex;
+				nearIndex = i;
+			}
+		}
+
+		goal = followable[oldestNearIndex];
+	}
+
 	bool inVision(Transform unit)
 	{
 		if (Vector3.Angle((unit.position - transform.position).normalized, transform.forward) < visionDegrees)
@@ -84,7 +116,7 @@ public class UnitEmergent : MonoBehaviour
 
 	void steer()
 	{
-		Quaternion goalRotation = Quaternion.LookRotation(transform.position);
+		Quaternion goalRotation = Quaternion.LookRotation(goal.position - transform.position);
 		float rr = rayResultFront();
 		Quaternion avoidRotation = transform.rotation * Quaternion.AngleAxis(rr * 4, Vector3.up);
 
@@ -127,7 +159,7 @@ public class UnitEmergent : MonoBehaviour
 
 		if (a && b && c && d)
 		{
-			return Vector3.SignedAngle(transform.forward, transform.position, transform.up) / 10;
+			return Vector3.SignedAngle(transform.forward, goal.position - transform.position, transform.up) / 10;
 		}
 
 		float distanceA = Vector3.Distance(hitA.point, rayA.origin);
@@ -164,6 +196,7 @@ public class UnitEmergent : MonoBehaviour
 
 	void standardMove()
 	{
+		velocity += transform.forward * acceleration * Time.deltaTime;
 		velocity = Vector3.ClampMagnitude(velocity, moveSpeed);
 		transform.position += velocity * Time.deltaTime;
 	}
@@ -177,5 +210,10 @@ public class UnitEmergent : MonoBehaviour
 			line.GetComponent<MeshRenderer>().material = greenMat;
 		else
 			line.GetComponent<MeshRenderer>().material = redMat;
+	}
+
+	void removeTransform(Transform t)
+	{
+		group.Remove(t);
 	}
 }
