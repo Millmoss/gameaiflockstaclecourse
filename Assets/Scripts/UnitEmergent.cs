@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class UnitEmergent : MonoBehaviour
 {
+	public bool isLeader = false;
 	public GameObject head;
 	public float moveSpeed = 1;
 	public GameObject lineA;
@@ -23,21 +24,20 @@ public class UnitEmergent : MonoBehaviour
 	public float avoidRotatePower = 32f;
 	public float visionDegrees = 75f;
 	public GameObject groupParent;
-	private List<Transform> group = null;
+	private UnitEmergent[] group = null;
 	public Transform goal = null;
+	private UnitEmergent goalScript = null;
+	bool left = false;
+	private Rigidbody unitBody;
 
 	public bool active = true;
 
 	void Start()
 	{
 		Physics.IgnoreLayerCollision(9, 0);
-
-		group = new List<Transform>();
-		UnitEmergent[] temp = groupParent.GetComponentsInChildren<UnitEmergent>();
-		for (int i = 0; i < temp.Length; i++)
-		{
-			group.Add(temp[i].gameObject.transform);
-		}
+		
+		group = groupParent.GetComponentsInChildren<UnitEmergent>();
+		unitBody = gameObject.GetComponent<Rigidbody>();
 	}
 
 	void Update()
@@ -69,15 +69,19 @@ public class UnitEmergent : MonoBehaviour
 		//y axis
 
 		transform.position = new Vector3(transform.position.x, 0 + .35f, transform.position.z);
+
+		unitBody.velocity = Vector3.Lerp(unitBody.velocity, Vector3.zero, .7f);
 	}
 
 	void setGoal()
 	{
-		List<Transform> followable = new List<Transform>();
+		goal = null;
 
-		for (int i = 0; i < group.Count; i++)
+		List<UnitEmergent> followable = new List<UnitEmergent>();
+
+		for (int i = 0; i < group.Length; i++)
 		{
-			if (inVision(group[i]))
+			if (inVision(group[i].gameObject.transform) && group[i].hasValidGoal(0))
 			{
 				followable.Add(group[i]);
 			}
@@ -86,28 +90,54 @@ public class UnitEmergent : MonoBehaviour
 		if (followable.Count < 1)
 			followable.Add(group[0]);
 
-		float nearest = Vector3.Distance(transform.position, followable[0].position);
+		float nearest = Vector3.Distance(transform.position, followable[0].gameObject.transform.position);
 		int nearIndex = 0;
-		int oldNearIndex = 0;
-		int oldestNearIndex = 0;
 
 		for (int i = 0; i < followable.Count; i++)
 		{
-			float dist = Vector3.Distance(transform.position, followable[i].position);
+			float dist = Vector3.Distance(transform.position, followable[i].gameObject.transform.position);
 
 			if ((dist != 0 && dist < nearest && followable[i].GetComponent<UnitEmergent>().goal != transform) || nearest == 0)
 			{
 				nearest = dist;
-				oldestNearIndex = oldNearIndex;
-				oldNearIndex = nearIndex;
 				nearIndex = i;
 			}
 		}
 
-		goal = followable[oldestNearIndex];
+		int taken = 0;
+
+		for (int i = 0; i < group.Length; i++)
+		{
+			if (Vector3.Distance(group[i].gameObject.transform.position, followable[nearIndex].gameObject.transform.position) < nearest &&
+				!group[i].inVision(followable[nearIndex].gameObject.transform))
+			{
+				taken++;
+			}
+		}
+
+		if (taken > 2)
+			return;
+
+		if (taken == 2)
+			left = false;
+		else
+			left = true;
+		goal = followable[nearIndex].gameObject.transform;
+		goalScript = followable[nearIndex];
 	}
 
-	bool inVision(Transform unit)
+	public bool hasValidGoal(int i)
+	{
+		if (i > group.Length / 2)
+			return false;
+
+		if (isLeader)
+			return true;
+		else
+			return hasValidGoal(i + 1);
+	}
+
+	public bool inVision(Transform unit)
 	{
 		if (Vector3.Angle((unit.position - transform.position).normalized, transform.forward) < visionDegrees)
 			return true;
@@ -116,7 +146,19 @@ public class UnitEmergent : MonoBehaviour
 
 	void steer()
 	{
-		Quaternion goalRotation = Quaternion.LookRotation(goal.position - transform.position);
+		if (goal == null)
+		{
+			transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(transform.right), goalRotatePower * Time.deltaTime);
+			return;
+		}
+
+		Vector3 look;
+		if (left)
+			look = goal.position - goal.forward - goal.right * .9f;
+		else
+			look = goal.position - goal.forward + goal.right * .9f;
+
+		Quaternion goalRotation = Quaternion.LookRotation(look - transform.position);
 		float rr = rayResultFront();
 		Quaternion avoidRotation = transform.rotation * Quaternion.AngleAxis(rr * 4, Vector3.up);
 
@@ -157,15 +199,18 @@ public class UnitEmergent : MonoBehaviour
 		if (!a && !b && !c && !d)
 			return 0;
 
-		if (a && b && c && d)
-		{
-			return Vector3.SignedAngle(transform.forward, goal.position - transform.position, transform.up) / 10;
-		}
-
 		float distanceA = Vector3.Distance(hitA.point, rayA.origin);
 		float distanceB = Vector3.Distance(hitB.point, rayB.origin);
 		float distanceC = Vector3.Distance(hitC.point, rayC.origin);
 		float distanceD = Vector3.Distance(hitD.point, rayD.origin);
+
+		if (a && b && c && d)
+		{
+			if (distanceA > distanceB)
+				return Mathf.Clamp(raycastDistance / distanceA, 0, 5) + Vector3.SignedAngle(transform.forward, goal.position - transform.position, transform.up) / 10;
+			else
+				return Mathf.Clamp(raycastDistance / -distanceB, -5, 0) + Vector3.SignedAngle(transform.forward, goal.position - transform.position, transform.up) / 10;
+		}
 
 		if (c && d)
 		{
@@ -196,6 +241,11 @@ public class UnitEmergent : MonoBehaviour
 
 	void standardMove()
 	{
+		if (goal == null)
+		{
+			velocity = Vector3.Lerp(velocity, Vector3.zero, acceleration * Time.deltaTime);
+		}
+
 		velocity += transform.forward * acceleration * Time.deltaTime;
 		velocity = Vector3.ClampMagnitude(velocity, moveSpeed);
 		transform.position += velocity * Time.deltaTime;
@@ -212,8 +262,24 @@ public class UnitEmergent : MonoBehaviour
 			line.GetComponent<MeshRenderer>().material = redMat;
 	}
 
-	void removeTransform(Transform t)
+	void removeUnit(Transform t)
 	{
-		group.Remove(t);
+		int index = 0;
+
+		for (int i = 0; i < group.Length; i++)
+		{
+			if (group[i].gameObject.transform == t)
+				index = i;
+		}
+
+		UnitEmergent[] temp = new UnitEmergent[group.Length - 1];
+
+		for (int i = 0; i < temp.Length; i++)
+		{
+			if (i == index)
+				temp[i] = group[group.Length - 1];
+		}
+
+		group = temp;
 	}
 }
