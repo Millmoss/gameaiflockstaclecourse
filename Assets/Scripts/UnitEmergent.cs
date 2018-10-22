@@ -25,7 +25,7 @@ public class UnitEmergent : MonoBehaviour
 	public float visionDegrees = 75f;
 	public GameObject groupParent;
 	private UnitEmergent[] group = null;
-	public Transform goal = null;
+	public UnitEmergent goal = null;
 	private UnitEmergent goalScript = null;
 	bool left = false;
 	private Rigidbody unitBody;
@@ -75,7 +75,8 @@ public class UnitEmergent : MonoBehaviour
 
 	void setGoal()
 	{
-		goal = null;
+		if (hasValidGoal(0))
+			return;
 
 		List<UnitEmergent> followable = new List<UnitEmergent>();
 
@@ -108,33 +109,37 @@ public class UnitEmergent : MonoBehaviour
 
 		for (int i = 0; i < group.Length; i++)
 		{
-			if (Vector3.Distance(group[i].gameObject.transform.position, followable[nearIndex].gameObject.transform.position) < nearest &&
-				!group[i].inVision(followable[nearIndex].gameObject.transform))
+			if (group[i].goal != null && group[i].goal.gameObject.transform == followable[nearIndex].gameObject.transform)
 			{
 				taken++;
 			}
 		}
 
-		if (taken > 2)
+		if (taken > 1)
 			return;
 
-		if (taken == 2)
+		if (taken == 1)
 			left = false;
 		else
 			left = true;
-		goal = followable[nearIndex].gameObject.transform;
+
+		print(left);
+		goal = followable[nearIndex];
 		goalScript = followable[nearIndex];
 	}
 
 	public bool hasValidGoal(int i)
 	{
-		if (i > group.Length / 2)
+		if (goal == null && !isLeader)
+			return false;
+
+		if (i > group.Length)
 			return false;
 
 		if (isLeader)
 			return true;
 		else
-			return hasValidGoal(i + 1);
+			return goal.hasValidGoal(i + 1);
 	}
 
 	public bool inVision(Transform unit)
@@ -154,9 +159,9 @@ public class UnitEmergent : MonoBehaviour
 
 		Vector3 look;
 		if (left)
-			look = goal.position - goal.forward - goal.right * .9f;
+			look = goal.gameObject.transform.position - goal.gameObject.transform.forward - goal.gameObject.transform.right * .9f;
 		else
-			look = goal.position - goal.forward + goal.right * .9f;
+			look = goal.gameObject.transform.position - goal.gameObject.transform.forward + goal.gameObject.transform.right * .9f;
 
 		Quaternion goalRotation = Quaternion.LookRotation(look - transform.position);
 		float rr = rayResultFront();
@@ -166,7 +171,7 @@ public class UnitEmergent : MonoBehaviour
 		if (rr != 0)
 		{
 			transform.rotation = Quaternion.Slerp(transform.rotation, avoidRotation, avoidRotatePower * Time.deltaTime);
-			transform.position += transform.right * rr * Time.deltaTime;
+			transform.position += transform.right * rr * Time.deltaTime / 10;
 		}
 	}
 
@@ -207,34 +212,34 @@ public class UnitEmergent : MonoBehaviour
 		if (a && b && c && d)
 		{
 			if (distanceA > distanceB)
-				return Mathf.Clamp(raycastDistance / distanceA, 0, 5) + Vector3.SignedAngle(transform.forward, goal.position - transform.position, transform.up) / 10;
+				return 2 + Vector3.SignedAngle(transform.forward, goal.gameObject.transform.position - transform.position, transform.up);
 			else
-				return Mathf.Clamp(raycastDistance / -distanceB, -5, 0) + Vector3.SignedAngle(transform.forward, goal.position - transform.position, transform.up) / 10;
+				return -2 + Vector3.SignedAngle(transform.forward, goal.gameObject.transform.position - transform.position, transform.up);
 		}
 
 		if (c && d)
 		{
 			if (distanceC < distanceD)
-				return Mathf.Clamp(raycastDistance / distanceC, 0, 5);
+				return 2;
 			else
-				return Mathf.Clamp(raycastDistance / -distanceD, -5, 0);
+				return -2;
 		}
 		if (c)
-			return Mathf.Clamp(raycastDistance / distanceC, 0, 5);
+			return 2;
 		if (d)
-			return Mathf.Clamp(raycastDistance / -distanceD, -5, 0);
+			return -2;
 
 		if (a && b)
 		{
 			if (distanceA < distanceB)
-				return Mathf.Clamp(raycastDistance / distanceA, 0, 5);
+				return 2;
 			else
-				return Mathf.Clamp(raycastDistance / -distanceB, -5, 0);
+				return -2;
 		}
 		if (a)
-			return Mathf.Clamp(raycastDistance / distanceA, 0, 5);
+			return 2;
 		if (b)
-			return Mathf.Clamp(raycastDistance / -distanceB, -5, 0);
+			return -2;
 
 		return 0;
 	}
@@ -262,6 +267,52 @@ public class UnitEmergent : MonoBehaviour
 			line.GetComponent<MeshRenderer>().material = redMat;
 	}
 
+	public void kill()
+	{
+		if (isLeader)
+		{
+			if (group.Length < 1)
+			{
+				head.transform.position = Vector3.zero;
+				Destroy(gameObject);
+			}
+
+			int nearIndex = -1;
+			float nearest = 100;
+			for (int i = 0; i < group.Length; i++)
+			{
+				if (group[i].gameObject.transform != transform && (nearest > Vector3.Distance(group[i].gameObject.transform.position, transform.position) || nearIndex == -1))
+				{
+					nearest = Vector3.Distance(group[i].gameObject.transform.position, transform.position);
+					nearIndex = i;
+				}
+			}
+
+			transform.position = group[nearIndex].gameObject.transform.position;
+			velocity = group[nearIndex].velocity;
+
+			group[nearIndex].kill();
+		}
+		else
+		{
+			if (group.Length < 1)
+			{
+				gameObject.SetActive(false);
+				return;
+			}
+
+			for (int i = 0; i < group.Length; i++)
+			{
+				if (group[i].gameObject.transform != transform)
+					group[i].removeUnit(transform);
+			}
+
+			gameObject.SetActive(false);
+			active = false;
+			head.transform.position = Vector3.zero;
+		}
+	}
+
 	void removeUnit(Transform t)
 	{
 		int index = 0;
@@ -277,9 +328,21 @@ public class UnitEmergent : MonoBehaviour
 		for (int i = 0; i < temp.Length; i++)
 		{
 			if (i == index)
+			{
 				temp[i] = group[group.Length - 1];
+			}
+			else
+				temp[i] = group[i];
 		}
-
+		
 		group = temp;
+	}
+
+	void OnCollisionEnter(Collision c)
+	{
+		if (c.gameObject.tag == "B")
+		{
+			kill();
+		}
 	}
 }

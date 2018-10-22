@@ -27,7 +27,8 @@ public class UnitFormationLeader : MonoBehaviour
 	public float goalDistance = 1f;
 	public float goalRotatePower = 7f;
 	public float avoidRotatePower = 32f;
-	private List<GameObject> group = null;		//if null, will not worry about group
+	private List<GameObject> group = null;      //if null, will not worry about group
+	private Rigidbody unitBody;
 	
 	public bool widthCheck = true;
 
@@ -48,6 +49,8 @@ public class UnitFormationLeader : MonoBehaviour
 
 		if (groupScript != null)
 			group = groupScript.getBoids();
+
+		unitBody = gameObject.GetComponent<Rigidbody>();
 	}
 
 	void Update()
@@ -75,6 +78,8 @@ public class UnitFormationLeader : MonoBehaviour
 
 		if (pathGoals.Count > pathIndex && Vector3.Distance(((GameObject)pathGoals[pathIndex]).transform.position, transform.position) < goalDistance)
 			pathIndex++;
+
+		unitBody.velocity = Vector3.Lerp(unitBody.velocity, Vector3.zero, .7f);
 	}
 
 	void steer()
@@ -136,26 +141,26 @@ public class UnitFormationLeader : MonoBehaviour
 		if (c && d)
 		{
 			if (distanceC < distanceD)
-				return Mathf.Clamp(goalDistance / distanceC, 0, 5);
+				return 2;
 			else
-				return Mathf.Clamp(goalDistance / -distanceD, -5, 0);
+				return -2;
 		}
 		if (c)
-			return Mathf.Clamp(goalDistance / distanceC, 0, 5);
+			return 2;
 		if (d)
-			return Mathf.Clamp(goalDistance / -distanceD, -5, 0);
+			return -2;
 
 		if (a && b)
 		{
 			if (distanceA < distanceB)
-				return Mathf.Clamp(goalDistance / distanceA, 0, 5);
+				return 2;
 			else
-				return Mathf.Clamp(goalDistance / -distanceB, -5, 0);
+				return -2;
 		}
 		if (a)
-			return Mathf.Clamp(goalDistance / distanceA, 0, 5);
+			return 2;
 		if (b)
-			return Mathf.Clamp(goalDistance / -distanceB, -5, 0);
+			return -2;
 
 		return 0;
 	}

@@ -50,9 +50,9 @@ public class Formation_Lead : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update ()
-    {
-        getLeft(10);
-        getRight(10);
+	{
+		getRight(10);
+		getLeft(10);
         for (int i=line_size / 2 ;i < boids.Count;i+=line_size)
         {
             for(int j = -line_size / 2; j < line_size / 2 + 1 && i + j < boids.Count;j++)
@@ -62,8 +62,6 @@ public class Formation_Lead : MonoBehaviour {
                boids[j + i].transform.rotation = transform.rotation;
             }
         }
-
-       
 	}
 
 	public float getFormationWidth()
@@ -78,25 +76,25 @@ public class Formation_Lead : MonoBehaviour {
 
 	public bool getLeft(float dist)
 	{
-        check_collision.transform.position = transform.position - transform.right * dist / 2
-            + transform.forward * (boids.Count / 2 / line_size + dist_between * boids.Count / 2 / line_size);
+		check_collision.transform.position = transform.position + transform.right * dist / 2
+			+ transform.forward * (boids.Count / 2 / line_size + dist_between * boids.Count / 2 / line_size);
 
-        check_collision.transform.rotation = transform.rotation;
+		check_collision.transform.rotation = transform.rotation;
 
-        check_collision.transform.localScale = new Vector3(dist , 1, boids.Count/ 2 );
+		check_collision.transform.localScale = new Vector3(dist, 1, boids.Count / 2);
 
 		return check_collision.GetComponent<Collision_Check>().is_colliding;
 	}
 
 	public bool getRight(float dist)
-    {
-        check_collision.transform.position = transform.position + transform.right * dist / 2
-            + transform.forward * (boids.Count / 2 / line_size + dist_between * boids.Count / 2 / line_size);
+	{
+		check_collision.transform.position = transform.position - transform.right * dist / 2
+			+ transform.forward * (boids.Count / 2 / line_size + dist_between * boids.Count / 2 / line_size);
 
-        check_collision.transform.rotation = transform.rotation;
+		check_collision.transform.rotation = transform.rotation;
 
-        check_collision.transform.localScale = new Vector3(dist, 1, boids.Count / 2);
+		check_collision.transform.localScale = new Vector3(dist, 1, boids.Count / 2);
 
-        return check_collision.GetComponent<Collision_Check>().is_colliding;
+		return check_collision.GetComponent<Collision_Check>().is_colliding;
     }
 }
