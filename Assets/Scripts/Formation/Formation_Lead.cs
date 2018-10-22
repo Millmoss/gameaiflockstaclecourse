@@ -7,7 +7,7 @@ public class Formation_Lead : MonoBehaviour {
     public GameObject boid;
     public List<GameObject> boids;
     private int line_size, offset_multi = 1;
-    private float dist_from_head = 1, dist_between = 0.5f;
+    private float dist_from_head = 1f, dist_between = 0.6f;
     public GameObject check_collision;
 
 	// Use this for initialization
@@ -17,12 +17,19 @@ public class Formation_Lead : MonoBehaviour {
             GameObject go = Instantiate(boid);
             boids.Add(go);
         }
-        Realign(3);
+        Realign(3.2f);
         check_collision.GetComponent<Collision_Check>().leader = gameObject;
 	}
 
-    public bool Realign(int new_size)
+    public bool Realign(float goal_width)
     {
+		int new_size = Mathf.FloorToInt(goal_width / .5f);
+		if (new_size > 1)
+			dist_between = .5f + goal_width % .5f / (new_size - 1);
+
+		if (new_size == 0)
+			return true;
+
         if(boids.Count % new_size != 0)
             return false;
         line_size = new_size;
@@ -51,14 +58,12 @@ public class Formation_Lead : MonoBehaviour {
 	// Update is called once per frame
 	void Update ()
 	{
-		getRight(10);
-		getLeft(10);
         for (int i=line_size / 2 ;i < boids.Count;i+=line_size)
         {
             for(int j = -line_size / 2; j < line_size / 2 + 1 && i + j < boids.Count;j++)
             {
-                boids[j + i].transform.position = transform.position + transform.forward *
-                   boids[j + i].GetComponent<Boid_Formation>().distance + (j + offset_multi * 0.5f) * transform.right;
+                boids[j + i].transform.position = transform.position - transform.forward * dist_between *
+                   boids[j + i].GetComponent<Boid_Formation>().distance + (j + offset_multi * 0.5f) * transform.right * dist_between;
                boids[j + i].transform.rotation = transform.rotation;
             }
         }
@@ -66,7 +71,7 @@ public class Formation_Lead : MonoBehaviour {
 
 	public float getFormationWidth()
 	{
-		return line_size;
+		return line_size * .5f + (line_size - 1) * (dist_between - .5f);
 	}
 
 	public List<GameObject> getBoids()

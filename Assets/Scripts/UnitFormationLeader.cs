@@ -60,6 +60,8 @@ public class UnitFormationLeader : MonoBehaviour
 
 	void FixedUpdate()
 	{
+		formationWidth = groupScript.getFormationWidth();
+
 		//rotation
 
 		steer();
@@ -172,9 +174,14 @@ public class UnitFormationLeader : MonoBehaviour
 		bool l = resultLeft != transform.position;
 		bool r = resultRight != transform.position;
 
+		float gapWidth = Vector3.Distance(resultLeft, transform.position) + Vector3.Distance(resultRight, transform.position);
+		print(gapWidth);
+		widthCheck = gapWidth > formationWidth;
+
 		if (!widthCheck)
 		{
 			velocity += transform.forward * acceleration * Time.deltaTime;
+			groupScript.Realign(gapWidth);
 			return;
 		}
 
@@ -186,7 +193,6 @@ public class UnitFormationLeader : MonoBehaviour
 		if (l && r)
 		{
 			goalWidth = Vector3.Distance(resultLeft, resultRight);
-			print(goalWidth);
 
 			if (formationWidth > goalWidth)
 			{
