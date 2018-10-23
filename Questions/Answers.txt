@@ -1,0 +1,13 @@
+Chris Chen, Owen Elliff
+
+What did you use for obstacle avoidance?
+
+We used raycasts in front of the character for individual boids and to the sides for the leader in scalable to check if there was room for the group.
+
+What are the heuristics for the agents to go through the tunnels?
+
+Our boids went through or around the tunnels according to the different formation types. The scalable formation was able to go through by sizing down into a single file line. The emergent formation mostly went around as the emergent boids often ended up in unpredictable positions. The two-level formation mostly went through the tunnel as they were all bunched together.
+
+What are the differences in the three groups’ performances?
+
+Scalable was effective, but looked rigid and unrealistic. Emergent looked strange as when one unit turned, the units behind it would have to catch up to its turn. As well, emergent units slowly began to lag behind as the units ahead of them weren't waiting on them so the emergent formation began to look less and less like a formation. Two-level was the most effective as it used the scalable formation to keep all the units nearby as well as making them all grouped close together so they could easily squeeze into tight spaces without issue.
