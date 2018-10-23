@@ -27,6 +27,7 @@ public class Two_Level_Head : MonoBehaviour
     public void Remove(GameObject ojb)
     {
         boids.Remove(ojb);
+        Realign(3.2f / 12 * boids.Count);
     }
 
     public bool Realign(float goal_width)

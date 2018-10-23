@@ -4,5 +4,8 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Scenes/ObstacleCourse.unity
+    guid: 768b9924d18ff334388e76b949757fc5
   m_configObjects: {}
