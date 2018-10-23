@@ -39,7 +39,6 @@ public class Formation_Lead : MonoBehaviour {
 
     public void kill()
     {
-        gameObject.SetActive(false);
         transform.position = boids[0].transform.position;
         boids[0].GetComponent<Boid_Formation>().kill();
         //send kill upward to manager
