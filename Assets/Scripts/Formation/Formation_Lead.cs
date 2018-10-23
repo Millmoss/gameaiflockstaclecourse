@@ -105,11 +105,11 @@ public class Formation_Lead : MonoBehaviour {
 	public bool getLeft(float dist)
 	{
 		check_collision.transform.position = transform.position + transform.right * dist / 2
-			+ transform.forward * (boids.Count / 2 / line_size + dist_between * boids.Count / 2 / line_size);
+			- transform.forward * (boids.Count / 2 / line_size + dist_between * boids.Count / 2 / line_size) / 2;
 
 		check_collision.transform.rotation = transform.rotation;
 
-		check_collision.transform.localScale = new Vector3(dist, 1, boids.Count / 2);
+		check_collision.transform.localScale = new Vector3(dist, 1, boids.Count / line_size);
 
 		return check_collision.GetComponent<Collision_Check>().is_colliding;
 	}
@@ -117,11 +117,11 @@ public class Formation_Lead : MonoBehaviour {
 	public bool getRight(float dist)
 	{
 		check_collision.transform.position = transform.position - transform.right * dist / 2
-			+ transform.forward * (boids.Count / 2 / line_size + dist_between * boids.Count / 2 / line_size);
+			- transform.forward * (boids.Count / 2 / line_size + dist_between * boids.Count / 2 / line_size) / 2;
 
 		check_collision.transform.rotation = transform.rotation;
 
-		check_collision.transform.localScale = new Vector3(dist, 1, boids.Count / 2);
+		check_collision.transform.localScale = new Vector3(dist, 1, boids.Count / line_size);
 
 		return check_collision.GetComponent<Collision_Check>().is_colliding;
     }
