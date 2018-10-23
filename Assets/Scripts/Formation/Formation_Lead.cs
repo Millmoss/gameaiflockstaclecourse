@@ -85,8 +85,13 @@ public class Formation_Lead : MonoBehaviour {
         {
             for(int j = -line_size / 2; j < line_size / 2 + 1 && i + j < boids.Count;j++)
             {
-                boids[j + i].transform.position = transform.position - transform.forward * dist_between *
-                   boids[j + i].GetComponent<Boid_Formation>().distance * .55f + (j + offset_multi * 0.5f) * transform.right * dist_between;
+                boids[j + i].transform.position = Vector3.Lerp(transform.position - transform.forward * dist_between *
+                   boids[j + i].GetComponent<Boid_Formation>().distance * .55f + (j + offset_multi * 0.5f) * transform.right * dist_between,
+                   boids[j + i].transform.position,
+                   0.8f);
+                boids[j + i].transform.position = new Vector3(boids[j + i].transform.position.x,
+                    0,
+                    boids[j + i].transform.position.z);
                boids[j + i].transform.rotation = transform.rotation;
             }
         }
@@ -105,24 +110,25 @@ public class Formation_Lead : MonoBehaviour {
 	public bool getLeft(float dist)
 	{
 		check_collision.transform.position = transform.position + transform.right * dist / 2
-			- transform.forward * (boids.Count / 2 / line_size + dist_between * boids.Count / 2 / line_size) / 2;
+			- transform.forward * (boids.Count / line_size) * 0.5f * dist_between;
 
 		check_collision.transform.rotation = transform.rotation;
 
-		check_collision.transform.localScale = new Vector3(dist, 1, boids.Count / line_size);
+		check_collision.transform.localScale = new Vector3(dist / 2, 1, boids.Count / line_size * dist_between);
 
 		return check_collision.GetComponent<Collision_Check>().is_colliding;
 	}
 
 	public bool getRight(float dist)
-	{
-		check_collision.transform.position = transform.position - transform.right * dist / 2
-			- transform.forward * (boids.Count / 2 / line_size + dist_between * boids.Count / 2 / line_size) / 2;
+    {
+        check_collision.transform.position = transform.position - transform.right * dist / 2
+            - transform.forward * (boids.Count / line_size) * 0.5f * dist_between;
 
-		check_collision.transform.rotation = transform.rotation;
+        check_collision.transform.rotation = transform.rotation;
 
-		check_collision.transform.localScale = new Vector3(dist, 1, boids.Count / line_size);
+        check_collision.transform.localScale = new Vector3(dist / 2, 1, boids.Count / line_size * dist_between);
 
-		return check_collision.GetComponent<Collision_Check>().is_colliding;
+
+        return check_collision.GetComponent<Collision_Check>().is_colliding;
     }
 }
