@@ -235,29 +235,8 @@ public class UnitFormationLeader : MonoBehaviour
 
 	void standardMove()
 	{
-		if (groupStatus())
-		{
-			velocity = Vector3.ClampMagnitude(velocity, moveSpeed);
-			transform.position += velocity * Time.deltaTime;
-		}
-		else
-		{
-			velocity = Vector3.Lerp(velocity, Vector3.zero, .7f);
-		}
-	}
-
-	bool groupStatus()
-	{
-		if (group == null)
-			return true;
-		bool status = true;
-		float maxDist = group.Count / 6 + 1;
-		for (int i = 0; i < group.Count; i++)
-		{
-			if (Vector3.Distance(group[i].transform.position, transform.position) > maxDist)
-				status = false;
-		}
-		return status;
+		velocity = Vector3.ClampMagnitude(velocity, moveSpeed);
+		transform.position += velocity * Time.deltaTime;
 	}
 
 	Vector3 rayResultLeft()
@@ -266,8 +245,8 @@ public class UnitFormationLeader : MonoBehaviour
 
 		Ray rayE = new Ray(transform.position, -transform.right);
 		RaycastHit hitE = new RaycastHit();
-		bool e = Physics.Raycast(rayE, out hitE, (formationWidth / 2 + .1f), selfMask);
-		rayDisplay(lineE, rayE.origin, rayE.origin + rayE.direction * (formationWidth / 2 + .1f), e);
+		bool e = Physics.Raycast(rayE, out hitE, 2, selfMask);
+		rayDisplay(lineE, rayE.origin, rayE.origin + rayE.direction * 2, e);
 
 		if (e)
 			return hitE.point;
@@ -281,8 +260,8 @@ public class UnitFormationLeader : MonoBehaviour
 
 		Ray rayF = new Ray(transform.position, transform.right);
 		RaycastHit hitF = new RaycastHit();
-		bool f = Physics.Raycast(rayF, out hitF, (formationWidth / 2 + .1f), selfMask);
-		rayDisplay(lineF, rayF.origin, rayF.origin + rayF.direction * (formationWidth / 2 + .1f), f);
+		bool f = Physics.Raycast(rayF, out hitF, 2, selfMask);
+		rayDisplay(lineF, rayF.origin, rayF.origin + rayF.direction * 2, f);
 
 		if (f)
 			return hitF.point;
