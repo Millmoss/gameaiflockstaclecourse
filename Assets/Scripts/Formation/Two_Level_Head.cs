@@ -4,26 +4,40 @@ using UnityEngine;
 
 public class Two_Level_Head : MonoBehaviour
 {
-    public GameObject boid;
     public List<GameObject> boids;
     private int line_size, offset_multi = 1;
-    private float dist_from_head = 1, dist_between = 0.5f;
-    public GameObject check_collision;
+    private float dist_from_head = 1f, dist_between = 0.6f;
 
     // Use this for initialization
     void Start()
     {
-        for (int i = 0; i < 12; i++)
+        Vector3 startpos = new Vector3();
+        for(int i=0;i<boids.Count;i++)
         {
-            GameObject go = Instantiate(boid);
-            boids.Add(go);
+            startpos += boids[i].transform.position;
+            boids[i].GetComponentInChildren<Two_Level_Boid>().form_head = this;
         }
-        Realign(4);
-        check_collision.GetComponent<Collision_Check>().leader = gameObject;
+        transform.position = startpos / boids.Count;
+
+
+        Realign(3.2f);
+        dist_from_head = -line_size/2;
     }
 
-    public bool Realign(int new_size)
+    public void Remove(GameObject ojb)
     {
+        boids.Remove(ojb);
+    }
+
+    public bool Realign(float goal_width)
+    {
+        int new_size = Mathf.FloorToInt(goal_width / .5f);
+        if (new_size > 1)
+            dist_between = .5f + goal_width % .5f / (new_size - 1);
+
+        if (new_size == 0)
+            return true;
+
         if (boids.Count % new_size != 0)
             return false;
         line_size = new_size;
@@ -43,7 +57,7 @@ public class Two_Level_Head : MonoBehaviour
         {
             for (int j = 0; j < line_size && j + i < boids.Count; j++)
             {
-                boids[j + i].GetComponent<Two_Level_Boid>().distance = 1 + i;
+                boids[j + i].GetComponentInChildren<Two_Level_Boid>().distance = dist_from_head + i / line_size + dist_between * i / line_size;
             }
 
         }
@@ -56,9 +70,9 @@ public class Two_Level_Head : MonoBehaviour
         {
             for (int j = -line_size / 2; j < line_size / 2 + 1 && i + j < boids.Count; j++)
             {
-                boids[j + i].GetComponent<Two_Level_Boid>().end_pos = transform.position + transform.forward *
-                   boids[j + i].GetComponent<Two_Level_Boid>().distance + (j + offset_multi * 0.5f) * transform.right;
-                
+                boids[j + i].GetComponentInChildren<Two_Level_Boid>().end_pos = transform.position - transform.forward * dist_between *
+                   boids[j + i].GetComponentInChildren<Two_Level_Boid>().distance + (j + offset_multi * 0.5f) * transform.right * dist_between;
+                //print(boids.Count + " " + j + i);   
             }
         }
 
@@ -73,29 +87,5 @@ public class Two_Level_Head : MonoBehaviour
     public List<GameObject> getBoids()
     {
         return boids;
-    }
-
-    public bool getLeft(float dist)
-    {
-        check_collision.transform.position = transform.position - transform.right * dist / 2
-            + transform.forward * (boids.Count / 2 / line_size + dist_between * boids.Count / 2 / line_size);
-
-        check_collision.transform.rotation = transform.rotation;
-
-        check_collision.transform.localScale = new Vector3(dist, 1, boids.Count / 2);
-
-        return check_collision.GetComponent<Collision_Check>().is_colliding;
-    }
-
-    public bool getRight(float dist)
-    {
-        check_collision.transform.position = transform.position + transform.right * dist / 2
-            + transform.forward * (boids.Count / 2 / line_size + dist_between * boids.Count / 2 / line_size);
-
-        check_collision.transform.rotation = transform.rotation;
-
-        check_collision.transform.localScale = new Vector3(dist, 1, boids.Count / 2);
-
-        return check_collision.GetComponent<Collision_Check>().is_colliding;
     }
 }
