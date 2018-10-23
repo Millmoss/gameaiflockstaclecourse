@@ -9,17 +9,41 @@ public class Formation_Lead : MonoBehaviour {
     private int line_size, offset_multi = 1;
     private float dist_from_head = 1f, dist_between = 0.6f;
     public GameObject check_collision;
+    private bool orig = true;
 
 	// Use this for initialization
 	void Start () {
-		for(int i=0;i < 12;i++)
+        if(orig)
+        {
+            awk();
+            orig = false;
+        }
+    }
+
+    private void awk()
+    {
+        for (int i = 0; i < 12; i++)
         {
             GameObject go = Instantiate(boid);
             boids.Add(go);
         }
-        Realign(3.2f);
+        Realign(3.2f / 12 * boids.Count);
         check_collision.GetComponent<Collision_Check>().leader = gameObject;
-	}
+    }
+
+    public void Remove(GameObject ojb)
+    {
+        boids.Remove(ojb);
+        Realign(3.2f / 12 * boids.Count);
+    }
+
+    public void kill()
+    {
+        gameObject.SetActive(false);
+        transform.position = boids[0].transform.position;
+        boids[0].GetComponent<Boid_Formation>().kill();
+        //send kill upward to manager
+    }
 
     public bool Realign(float goal_width)
     {
