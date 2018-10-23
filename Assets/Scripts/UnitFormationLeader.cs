@@ -57,10 +57,12 @@ public class UnitFormationLeader : MonoBehaviour
 	void Update()
 	{
 		head.transform.position = transform.position + new Vector3(0, .3f, 0);
+		unitBody.velocity = Vector3.zero;
 	}
 
 	void FixedUpdate()
 	{
+
 		if (groupScript != null)
 			formationWidth = groupScript.getFormationWidth();
 
@@ -83,7 +85,12 @@ public class UnitFormationLeader : MonoBehaviour
 		if (pathGoals.Count > pathIndex && Vector3.Distance(((GameObject)pathGoals[pathIndex]).transform.position, transform.position) < goalDistance)
 			pathIndex++;
 
-		unitBody.velocity = Vector3.Lerp(unitBody.velocity, Vector3.zero, .7f);
+		unitBody.velocity = Vector3.zero;
+	}
+
+	void LateUpdate()
+	{
+		unitBody.velocity = Vector3.zero;
 	}
 
 	void steer()
@@ -99,7 +106,7 @@ public class UnitFormationLeader : MonoBehaviour
 		{
 			if (rr > 0 && !groupScript.getRight(groupScript.line_size / 2f + .25f))//can move right?
 			{
-				velocity += transform.right * Time.deltaTime * 200;
+				velocity += transform.right * Time.deltaTime * 20;
 			}
 			else
 			{
@@ -112,9 +119,9 @@ public class UnitFormationLeader : MonoBehaviour
 				}
 			}
 
-			if (groupScript.getLeft(groupScript.line_size / 2f + .25f))//can move left?
+			if (rr < 0 && !groupScript.getLeft(groupScript.line_size / 2f + .25f))//can move left?
 			{
-				velocity += -transform.right * Time.deltaTime * 200;
+				velocity += -transform.right * Time.deltaTime * 20;
 			}
 			else
 			{
@@ -202,25 +209,27 @@ public class UnitFormationLeader : MonoBehaviour
 		bool l = resultLeft != transform.position;
 		bool r = resultRight != transform.position;
 
-		float gapWidth = Vector3.Distance(resultLeft, transform.position) + Vector3.Distance(resultRight, transform.position);
-		widthCheck = gapWidth > formationWidth;
-
-		if (groupScript != null)
-			groupScript.Realign(gapWidth);
-
-		if (!widthCheck)
-		{
-			velocity += transform.forward * acceleration * Time.deltaTime;
-			return;
-		}
-
 		if (!l && !r)
 		{
 			velocity += transform.forward * acceleration * Time.deltaTime;
+			groupScript.Realign(groupScript.boids.Count / 4f);
+
+			return;
 		}
 
-		if (l && r)
+		float gapWidth = Vector3.Distance(resultLeft, transform.position) + Vector3.Distance(resultRight, transform.position);
+		widthCheck = gapWidth > formationWidth;
+
+		if (groupScript != null && l && r)
 		{
+			groupScript.Realign(gapWidth);
+
+			if (!widthCheck)
+			{
+				velocity += transform.forward * acceleration * Time.deltaTime;
+				return;
+			}
+
 			goalWidth = Vector3.Distance(resultLeft, resultRight);
 
 			if (formationWidth > goalWidth)
@@ -235,33 +244,20 @@ public class UnitFormationLeader : MonoBehaviour
 
 		if (l && !r)
 		{
-			if (groupScript.getRight(Vector3.Distance(resultLeft, transform.position)))//can move right?
-			{
-				velocity += transform.right * Time.deltaTime * 200;
-			}
-			else
-			{
-				goalWidth = Vector3.Distance(resultLeft, transform.position) + formationWidth / 2;
-				groupScript.Realign(goalWidth);
-			}
+			goalWidth = Vector3.Distance(resultLeft, transform.position) + formationWidth / 2;
+			groupScript.Realign(goalWidth);
 		}
 
 		if (!l && r)
 		{
-			if (groupScript.getLeft(Vector3.Distance(resultRight, transform.position)))//can move left?
-			{
-				velocity += -transform.right * Time.deltaTime * 200;
-			}
-			else
-			{
-				goalWidth = Vector3.Distance(resultLeft, transform.position) + formationWidth / 2;
-				groupScript.Realign(goalWidth);
-			}
+			goalWidth = Vector3.Distance(resultLeft, transform.position) + formationWidth / 2;
+			groupScript.Realign(goalWidth);
 		}
 	}
 
 	void standardMove()
 	{
+		print(velocity);
 		velocity = Vector3.ClampMagnitude(velocity, moveSpeed);
 		transform.position += velocity * Time.deltaTime;
 	}

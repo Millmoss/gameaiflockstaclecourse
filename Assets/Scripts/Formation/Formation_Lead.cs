@@ -86,7 +86,7 @@ public class Formation_Lead : MonoBehaviour {
             for(int j = -line_size / 2; j < line_size / 2 + 1 && i + j < boids.Count;j++)
             {
                 boids[j + i].transform.position = Vector3.Lerp(transform.position - transform.forward * dist_between *
-                   boids[j + i].GetComponent<Boid_Formation>().distance * .55f + (j + offset_multi * 0.5f) * transform.right * dist_between,
+                   boids[j + i].GetComponent<Boid_Formation>().distance * .7f + (j + offset_multi * 0.5f) * transform.right * dist_between,
                    boids[j + i].transform.position,
                    0.8f);
                 boids[j + i].transform.position = new Vector3(boids[j + i].transform.position.x,
@@ -114,7 +114,7 @@ public class Formation_Lead : MonoBehaviour {
 
 		check_collision.transform.rotation = transform.rotation;
 
-		check_collision.transform.localScale = new Vector3(dist / 2, 1, boids.Count / line_size * dist_between);
+		check_collision.transform.localScale = new Vector3(dist / 2, 1, boids.Count / line_size * dist_between * .8f);
 
 		return check_collision.GetComponent<Collision_Check>().is_colliding;
 	}
@@ -126,7 +126,7 @@ public class Formation_Lead : MonoBehaviour {
 
         check_collision.transform.rotation = transform.rotation;
 
-        check_collision.transform.localScale = new Vector3(dist / 2, 1, boids.Count / line_size * dist_between);
+        check_collision.transform.localScale = new Vector3(dist / 2, 1, boids.Count / line_size * dist_between * .8f);
 
 
         return check_collision.GetComponent<Collision_Check>().is_colliding;
