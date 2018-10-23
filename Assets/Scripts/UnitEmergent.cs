@@ -122,18 +122,14 @@ public class UnitEmergent : MonoBehaviour
 			left = false;
 		else
 			left = true;
-
-		print(left);
+		
 		goal = followable[nearIndex];
 		goalScript = followable[nearIndex];
 	}
 
 	public bool hasValidGoal(int i)
 	{
-		if (goal == null && !isLeader)
-			return false;
-
-		if (i > group.Length)
+		if (goal == null && !isLeader || i > group.Length)
 			return false;
 
 		if (isLeader)
@@ -316,6 +312,8 @@ public class UnitEmergent : MonoBehaviour
 	void removeUnit(Transform t)
 	{
 		int index = 0;
+
+		goal = null;
 
 		for (int i = 0; i < group.Length; i++)
 		{
