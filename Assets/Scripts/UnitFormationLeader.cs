@@ -95,11 +95,37 @@ public class UnitFormationLeader : MonoBehaviour
 		float rr = rayResultFront();
 		Quaternion avoidRotation = transform.rotation * Quaternion.AngleAxis(rr * 4, Vector3.up);
 
-		transform.rotation = Quaternion.Slerp(transform.rotation, goalRotation, goalRotatePower * Time.deltaTime);
-		if (rr != 0)
+		if (groupScript != null)
 		{
-			transform.rotation = Quaternion.Slerp(transform.rotation, avoidRotation, avoidRotatePower * Time.deltaTime);
-			transform.position += transform.right * rr * Time.deltaTime;
+			if (rr > 0 && !groupScript.getRight(groupScript.line_size / 2f + .25f))//can move right?
+			{
+				velocity += transform.right * Time.deltaTime * 200;
+			}
+			else
+			{
+				transform.rotation = Quaternion.Slerp(transform.rotation, goalRotation, goalRotatePower * Time.deltaTime);
+
+				if (rr != 0)
+				{
+					transform.rotation = Quaternion.Slerp(transform.rotation, avoidRotation, avoidRotatePower * Time.deltaTime);
+					transform.position += transform.right * rr * Time.deltaTime;
+				}
+			}
+
+			if (groupScript.getLeft(groupScript.line_size / 2f + .25f))//can move left?
+			{
+				velocity += -transform.right * Time.deltaTime * 200;
+			}
+			else
+			{
+				transform.rotation = Quaternion.Slerp(transform.rotation, goalRotation, goalRotatePower * Time.deltaTime);
+
+				if (rr != 0)
+				{
+					transform.rotation = Quaternion.Slerp(transform.rotation, avoidRotation, avoidRotatePower * Time.deltaTime);
+					transform.position += transform.right * rr * Time.deltaTime;
+				}
+			}
 		}
 	}
 
@@ -179,11 +205,12 @@ public class UnitFormationLeader : MonoBehaviour
 		float gapWidth = Vector3.Distance(resultLeft, transform.position) + Vector3.Distance(resultRight, transform.position);
 		widthCheck = gapWidth > formationWidth;
 
+		if (groupScript != null)
+			groupScript.Realign(gapWidth);
+
 		if (!widthCheck)
 		{
 			velocity += transform.forward * acceleration * Time.deltaTime;
-			if (groupScript != null)
-				groupScript.Realign(gapWidth);
 			return;
 		}
 
@@ -210,12 +237,12 @@ public class UnitFormationLeader : MonoBehaviour
 		{
 			if (groupScript.getRight(Vector3.Distance(resultLeft, transform.position)))//can move right?
 			{
-				velocity += transform.right * Vector3.Distance(resultLeft, transform.position) * Time.deltaTime * 100;
+				velocity += transform.right * Time.deltaTime * 200;
 			}
 			else
 			{
 				goalWidth = Vector3.Distance(resultLeft, transform.position) + formationWidth / 2;
-				velocity = Vector3.Lerp(velocity, Vector3.zero, .7f);
+				groupScript.Realign(goalWidth);
 			}
 		}
 
@@ -223,12 +250,12 @@ public class UnitFormationLeader : MonoBehaviour
 		{
 			if (groupScript.getLeft(Vector3.Distance(resultRight, transform.position)))//can move left?
 			{
-				velocity += -transform.right * Vector3.Distance(resultRight, transform.position) * Time.deltaTime * 100;
+				velocity += -transform.right * Time.deltaTime * 200;
 			}
 			else
 			{
 				goalWidth = Vector3.Distance(resultLeft, transform.position) + formationWidth / 2;
-				velocity = Vector3.Lerp(velocity, Vector3.zero, .7f);
+				groupScript.Realign(goalWidth);
 			}
 		}
 	}

@@ -6,7 +6,7 @@ public class Formation_Lead : MonoBehaviour {
 
     public GameObject boid;
     public List<GameObject> boids;
-    private int line_size, offset_multi = 1;
+    public int line_size, offset_multi = 1;
     private float dist_from_head = 1f, dist_between = 0.6f;
     public GameObject check_collision;
     private bool orig = true;
@@ -86,7 +86,7 @@ public class Formation_Lead : MonoBehaviour {
             for(int j = -line_size / 2; j < line_size / 2 + 1 && i + j < boids.Count;j++)
             {
                 boids[j + i].transform.position = transform.position - transform.forward * dist_between *
-                   boids[j + i].GetComponent<Boid_Formation>().distance + (j + offset_multi * 0.5f) * transform.right * dist_between;
+                   boids[j + i].GetComponent<Boid_Formation>().distance * .55f + (j + offset_multi * 0.5f) * transform.right * dist_between;
                boids[j + i].transform.rotation = transform.rotation;
             }
         }
