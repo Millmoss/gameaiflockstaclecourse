@@ -51,6 +51,7 @@ public class UnitFormationLeader : MonoBehaviour
 			group = groupScript.getBoids();
 
 		unitBody = gameObject.GetComponent<Rigidbody>();
+		unitBody.freezeRotation = true;
 	}
 
 	void Update()
@@ -60,7 +61,8 @@ public class UnitFormationLeader : MonoBehaviour
 
 	void FixedUpdate()
 	{
-		formationWidth = groupScript.getFormationWidth();
+		if (groupScript != null)
+			formationWidth = groupScript.getFormationWidth();
 
 		//rotation
 
@@ -68,7 +70,7 @@ public class UnitFormationLeader : MonoBehaviour
 		head.transform.rotation = transform.rotation;
 
 		//movement
-
+		
 		moveLogic();
 		standardMove();
 
@@ -175,13 +177,13 @@ public class UnitFormationLeader : MonoBehaviour
 		bool r = resultRight != transform.position;
 
 		float gapWidth = Vector3.Distance(resultLeft, transform.position) + Vector3.Distance(resultRight, transform.position);
-		print(gapWidth);
 		widthCheck = gapWidth > formationWidth;
 
 		if (!widthCheck)
 		{
 			velocity += transform.forward * acceleration * Time.deltaTime;
-			groupScript.Realign(gapWidth);
+			if (groupScript != null)
+				groupScript.Realign(gapWidth);
 			return;
 		}
 
